@@ -3,11 +3,26 @@
 #include <cassert>
 
 #include "ObjectPool.h"
+#include "Common.h"
 
 struct TestObject {
     int id = 0;
     double value = 0.0;
 };
+
+void TestObjNext() {
+    // Simulate two aligned free memory blocks.
+    alignas(void*) char blockA[sizeof(void*)] = {};
+    alignas(void*) char blockB[sizeof(void*)] = {};
+
+    ObjNext(blockA) = blockB;
+    ObjNext(blockB) = nullptr;
+
+    assert(ObjNext(blockA) == blockB);
+    assert(ObjNext(blockB) == nullptr);
+
+    std::cout << "[PASS] ObjNext" << std::endl;
+}
 
 void TestBasicAllocation() {
     ObjectPool<TestObject> pool;
@@ -104,6 +119,7 @@ int main() {
     TestFreeListReuse();
     TestLargeAllocation();
     TestSmallObject();
+    TestObjNext();
 
     std::cout << "All ObjectPool tests passed!" << std::endl;
 
