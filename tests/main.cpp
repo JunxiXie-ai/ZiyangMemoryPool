@@ -10,6 +10,25 @@ struct TestObject {
     double value = 0.0;
 };
 
+void TestFreeList() {
+    FreeList list;
+
+    alignas(void*) char a[sizeof(void*)] = {};
+    alignas(void*) char b[sizeof(void*)] = {};
+    alignas(void*) char c[sizeof(void*)] = {};
+
+    list.Push(a);
+    list.Push(b);
+    list.Push(c);
+
+    // Verify LIFO ordering.
+    assert(list.Pop() == c);
+    assert(list.Pop() == b);
+    assert(list.Pop() == a);
+
+    std::cout << "[PASS] FreeList Push/Pop" << std::endl;
+}
+
 void TestObjNext() {
     // Simulate two aligned free memory blocks.
     alignas(void*) char blockA[sizeof(void*)] = {};
@@ -120,6 +139,7 @@ int main() {
     TestLargeAllocation();
     TestSmallObject();
     TestObjNext();
+    TestFreeList();
 
     std::cout << "All ObjectPool tests passed!" << std::endl;
 
