@@ -1,5 +1,6 @@
 #pragma once
 #include <cassert>
+#include <cstddef>
 
 // Access the next pointer stored inside a free memory block.
 static inline void*& ObjNext(void* obj) {
@@ -29,4 +30,62 @@ class FreeList {
     
     private:
         void* _freeList = nullptr;
+    };
+
+    // Map allocation sizes to aligned size classes.
+class SizeClass {
+    public:
+        // Round up the requested size to the required alignment.
+        static inline size_t RoundUp(size_t size) {
+            assert(size > 0 && size <= 256 * 1024);
+    
+            if (size <= 128) {
+                return _RoundUp(size, 8);
+            }
+            else if (size <= 1024) {
+                return _RoundUp(size, 16);
+            }
+            else if (size <= 8 * 1024) {
+                return _RoundUp(size, 128);
+            }
+            else if (size <= 64 * 1024) {
+                return _RoundUp(size, 1024);
+            }
+            else {
+                return _RoundUp(size, 8 * 1024);
+            }
+        }
+
+        // Map a requested size to its free-list bucket index.
+    static inline size_t Index(size_t size) {
+        assert(size > 0 && size <= 256 * 1024);
+
+        if (size <= 128) {
+            return _Index(size, 3);
+        }
+        else if (size <= 1024) {
+            return _Index(size - 128, 4) + 16;
+        }
+        else if (size <= 8 * 1024) {
+            return _Index(size - 1024, 7) + 72;
+        }
+        else if (size <= 64 * 1024) {
+            return _Index(size - 8 * 1024, 10) + 128;
+        }
+        else {
+            return _Index(size - 64 * 1024, 13) + 184;
+        }
+    }
+    
+    private:
+        // Round up to the nearest multiple of alignment.
+        static inline size_t _RoundUp(size_t size, size_t alignment) {
+            return ((size + alignment - 1) / alignment) * alignment;
+        }
+
+        // Calculate the zero-based bucket index within a size range.
+        static inline size_t _Index(size_t size, size_t alignShift) {
+            return ((size + (size_t{1} << alignShift) - 1)
+                    >> alignShift) - 1;
+        }
     };

@@ -10,6 +10,17 @@ struct TestObject {
     double value = 0.0;
 };
 
+void TestSizeClassRoundUp() {
+    assert(SizeClass::RoundUp(7) == 8);
+    assert(SizeClass::RoundUp(13) == 16);
+    assert(SizeClass::RoundUp(128) == 128);
+    assert(SizeClass::RoundUp(130) == 144);
+    assert(SizeClass::RoundUp(1025) == 1152);
+    assert(SizeClass::RoundUp(8193) == 9216);
+
+    std::cout << "[PASS] SizeClass RoundUp" << std::endl;
+}
+
 void TestFreeList() {
     FreeList list;
 
@@ -133,6 +144,28 @@ void TestSmallObject() {
     std::cout << "[PASS] Small Object" << std::endl;
 }
 
+void TestSizeClassIndex() {
+    assert(SizeClass::Index(1) == 0);
+    assert(SizeClass::Index(8) == 0);
+    assert(SizeClass::Index(13) == 1);
+    assert(SizeClass::Index(128) == 15);
+
+    assert(SizeClass::Index(129) == 16);
+    assert(SizeClass::Index(130) == 16);
+    assert(SizeClass::Index(1024) == 71);
+
+    assert(SizeClass::Index(1025) == 72);
+    assert(SizeClass::Index(8192) == 127);
+
+    assert(SizeClass::Index(8193) == 128);
+    assert(SizeClass::Index(65536) == 183);
+
+    assert(SizeClass::Index(65537) == 184);
+    assert(SizeClass::Index(256 * 1024) == 207);
+
+    std::cout << "[PASS] SizeClass Index" << std::endl;
+}
+
 int main() {
     TestBasicAllocation();
     TestFreeListReuse();
@@ -140,7 +173,8 @@ int main() {
     TestSmallObject();
     TestObjNext();
     TestFreeList();
-
+    TestSizeClassRoundUp();
+    TestSizeClassIndex();
     std::cout << "All ObjectPool tests passed!" << std::endl;
 
     return 0;
