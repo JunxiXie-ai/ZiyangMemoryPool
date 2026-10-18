@@ -166,6 +166,30 @@ void TestSizeClassIndex() {
     std::cout << "[PASS] SizeClass Index" << std::endl;
 }
 
+void TestNumMoveSize() {
+    assert(SizeClass::NumMoveSize(8) == 512);
+    assert(SizeClass::NumMoveSize(128) == 512);
+    assert(SizeClass::NumMoveSize(1024) == 64);
+    assert(SizeClass::NumMoveSize(8192) == 8);
+    assert(SizeClass::NumMoveSize(65536) == 2);
+
+    std::cout << "[PASS] NumMoveSize" << std::endl;
+}
+
+void TestFreeListMaxSize() {
+    FreeList list;
+
+    // The initial batch limit should be one.
+    assert(list.MaxSize() == 1);
+
+    // Increase the batch limit for the next request.
+    list.MaxSize()++;
+
+    assert(list.MaxSize() == 2);
+
+    std::cout << "[PASS] FreeList MaxSize" << std::endl;
+}
+
 int main() {
     TestBasicAllocation();
     TestFreeListReuse();
@@ -175,6 +199,8 @@ int main() {
     TestFreeList();
     TestSizeClassRoundUp();
     TestSizeClassIndex();
+    TestNumMoveSize();
+    TestFreeListMaxSize();
     std::cout << "All ObjectPool tests passed!" << std::endl;
 
     return 0;

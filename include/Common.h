@@ -27,9 +27,16 @@ class FreeList {
     
             return obj;
         }
+
+        // Access the current batch limit for slow-start allocation.
+        size_t& MaxSize() {
+            return _maxSize;
+        }
     
     private:
         void* _freeList = nullptr;
+        // Maximum batch size requested during slow start.
+        size_t _maxSize = 1;
     };
 
     // Map allocation sizes to aligned size classes.
@@ -76,6 +83,24 @@ class SizeClass {
             return _Index(size - 64 * 1024, 13) + 184;
         }
     }
+
+    // Calculate the recommended number of objects per batch.
+    static inline size_t NumMoveSize(size_t size) {
+        assert(size > 0 && size <= 256 * 1024);
+
+        size_t num = (64 * 1024) / size;
+
+        // Limit the batch size to avoid excessive memory usage.
+        if (num < 2) {
+            num = 2;
+        }
+
+        if (num > 512) {
+            num = 512;
+        }
+
+        return num;
+    }
     
     private:
         // Round up to the nearest multiple of alignment.
@@ -88,4 +113,5 @@ class SizeClass {
             return ((size + (size_t{1} << alignShift) - 1)
                     >> alignShift) - 1;
         }
+        
     };
