@@ -190,6 +190,36 @@ void TestFreeListMaxSize() {
     std::cout << "[PASS] FreeList MaxSize" << std::endl;
 }
 
+void TestFreeListPushRange() {
+    FreeList list;
+
+    alignas(void*) char a[sizeof(void*)] = {};
+    alignas(void*) char b[sizeof(void*)] = {};
+    alignas(void*) char c[sizeof(void*)] = {};
+    alignas(void*) char d[sizeof(void*)] = {};
+
+    list.Push(a);
+
+    // Prepare a linked range: b -> c -> d.
+    ObjNext(b) = c;
+    ObjNext(c) = d;
+    ObjNext(d) = nullptr;
+
+    list.PushRange(b, d, 3);
+
+    assert(list.Size() == 4);
+
+    // Verify the insertion order.
+    assert(list.Pop() == b);
+    assert(list.Pop() == c);
+    assert(list.Pop() == d);
+    assert(list.Pop() == a);
+
+    assert(list.Size() == 0);
+
+    std::cout << "[PASS] FreeList PushRange" << std::endl;
+}
+
 int main() {
     TestBasicAllocation();
     TestFreeListReuse();
@@ -201,6 +231,7 @@ int main() {
     TestSizeClassIndex();
     TestNumMoveSize();
     TestFreeListMaxSize();
+    TestFreeListPushRange();
     std::cout << "All ObjectPool tests passed!" << std::endl;
 
     return 0;

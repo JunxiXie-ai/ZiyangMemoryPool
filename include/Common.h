@@ -16,6 +16,7 @@ class FreeList {
     
             ObjNext(obj) = _freeList;
             _freeList = obj;
+            _size++;
         }
     
         // Remove and return the first free memory block.
@@ -24,7 +25,8 @@ class FreeList {
     
             void* obj = _freeList;
             _freeList = ObjNext(obj);
-    
+            _size--;
+
             return obj;
         }
 
@@ -32,11 +34,29 @@ class FreeList {
         size_t& MaxSize() {
             return _maxSize;
         }
+
+        // Insert a linked range of free blocks at the head.
+        void PushRange(void* start, void* end, size_t n) {
+            assert(start != nullptr);
+            assert(end != nullptr);
+            assert(n > 0);
+
+            ObjNext(end) = _freeList;
+            _freeList = start;
+            _size += n;
+        }
+
+        // Return the number of free blocks.
+        size_t Size() const {
+            return _size;
+        }
     
     private:
         void* _freeList = nullptr;
         // Maximum batch size requested during slow start.
         size_t _maxSize = 1;
+        // Number of free blocks currently stored in the list.
+        size_t _size = 0;
     };
 
     // Map allocation sizes to aligned size classes.
