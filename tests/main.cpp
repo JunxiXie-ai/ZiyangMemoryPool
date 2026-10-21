@@ -220,6 +220,40 @@ void TestFreeListPushRange() {
     std::cout << "[PASS] FreeList PushRange" << std::endl;
 }
 
+void TestFreeListPopRange() {
+    FreeList list;
+
+    alignas(void*) char a[sizeof(void*)] = {};
+    alignas(void*) char b[sizeof(void*)] = {};
+    alignas(void*) char c[sizeof(void*)] = {};
+    alignas(void*) char d[sizeof(void*)] = {};
+
+    // Build a list: a -> b -> c -> d.
+    ObjNext(a) = b;
+    ObjNext(b) = c;
+    ObjNext(c) = d;
+    ObjNext(d) = nullptr;
+
+    list.PushRange(a, d, 4);
+
+    void* start = nullptr;
+    void* end = nullptr;
+
+    // Extract the first three blocks.
+    list.PopRange(start, end, 3);
+
+    assert(start == a);
+    assert(end == c);
+    assert(ObjNext(end) == nullptr);
+    assert(list.Size() == 1);
+
+    // Verify that the remaining block is d.
+    assert(list.Pop() == d);
+    assert(list.Size() == 0);
+
+    std::cout << "[PASS] FreeList PopRange" << std::endl;
+}
+
 int main() {
     TestBasicAllocation();
     TestFreeListReuse();
@@ -232,6 +266,7 @@ int main() {
     TestNumMoveSize();
     TestFreeListMaxSize();
     TestFreeListPushRange();
+    TestFreeListPopRange();
     std::cout << "All ObjectPool tests passed!" << std::endl;
 
     return 0;

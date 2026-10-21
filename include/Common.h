@@ -50,6 +50,27 @@ class FreeList {
         size_t Size() const {
             return _size;
         }
+
+        // Remove a linked range of free blocks from the head.
+        void PopRange(void*& start, void*& end, size_t n) {
+            assert(n > 0 && n <= _size);
+
+            start = _freeList;
+            end = start;
+
+            // Find the last block in the requested range.
+            for (size_t i = 1; i < n; ++i) {
+                end = ObjNext(end);
+            }
+
+            // Update the free-list head.
+            _freeList = ObjNext(end);
+
+            // Disconnect the extracted range.
+            ObjNext(end) = nullptr;
+
+            _size -= n;
+        }
     
     private:
         void* _freeList = nullptr;
